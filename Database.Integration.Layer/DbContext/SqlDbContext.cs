@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 
 
-namespace Database.Unit.Test.DbContext
+namespace Database.Integration.Layer.DbContext
 {
     public class SqlDbContext: DbContext
     {
@@ -14,7 +14,7 @@ namespace Database.Unit.Test.DbContext
 
         public SqlDbContext(string server, string dbName, string userName, string password, bool integratedSecurity)
         {
-            var credentials = integratedSecurity ? $"Integrated Security ={integratedSecurity.ToString()};" : $"user id={userName};Password ={password};";
+            var credentials = integratedSecurity ? $"Integrated Security={integratedSecurity.ToString()};" : $"user id={userName};Password={password};";
 
             _connectionString = $@"Data Source={server};Initial Catalog={dbName};{credentials}";
             _masterDbConnectionString = $@"Data Source={server};Initial Catalog=master;{credentials}";
@@ -26,10 +26,11 @@ namespace Database.Unit.Test.DbContext
         {
             get
             {
-                if (_connection == null)
+                if (_connection == null || string.IsNullOrEmpty(_connection?.DataSource))
                 {
                     _connection = new SqlConnection(_connectionString);
                 }
+                
                 return _connection;
             }
             set

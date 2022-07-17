@@ -1,9 +1,8 @@
 ﻿using Dapper;
-using Database.Unit.Test.DbContext.Entities;
-using Npgsql;
+using Database.Integration.Layer.DbContext.Entities;
 using System.Data;
 
-namespace Database.Unit.Test.DbContext.Repositories
+namespace Database.Integration.Layer.DbContext.Repositories
 {
     public class EmployeeRepository
     {        
@@ -31,7 +30,7 @@ namespace Database.Unit.Test.DbContext.Repositories
 
                 using var connection = _dbContext.Connection;
                 connection.Open();
-                var employee = connection.QueryFirst<Employee>(sql, new { employee_id = employeeId });
+                var employee = connection.QueryFirstOrDefault<Employee>(sql, new { employee_id = employeeId });
 
                 return employee;
             }

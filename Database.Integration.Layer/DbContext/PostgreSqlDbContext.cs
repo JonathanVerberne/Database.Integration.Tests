@@ -2,12 +2,14 @@
 using Npgsql;
 using System.Data.Common;
 
-namespace Database.Unit.Test.DbContext
+namespace Database.Integration.Layer.DbContext
 {
     public class PostgreSqlDbContext : DbContext
     {
         private DbConnection _connection;
         private readonly string _connectionString;
+        private readonly string _masterDbConnectionString;
+        private readonly string _dbName;
 
         public PostgreSqlDbContext(string host, string dbName, int port, string userName, string password)
         {
@@ -16,16 +18,24 @@ namespace Database.Unit.Test.DbContext
                                    Database={dbName};
                                    User ID={userName};
                                    Password={password};";
+
+            _masterDbConnectionString = $@"Host={host};
+                                   Port={port.ToString()};
+                                   Database=postgres;
+                                   User ID=postgres;
+                                   Password={password};";
+            _dbName = dbName;
         }
 
         public override DbConnection Connection
         {
             get
             {
-                if (_connection == null)
+                if (_connection == null || string.IsNullOrEmpty(_connection?.DataSource))
                 {
                     _connection = new NpgsqlConnection(_connectionString);
                 }
+                
                 return _connection;
             }
             set
@@ -56,6 +66,7 @@ namespace Database.Unit.Test.DbContext
         {
             try
             {
+                CreateDatabase();
                 CreateEmployeeTable();
                 return true;
             }
@@ -65,7 +76,29 @@ namespace Database.Unit.Test.DbContext
                 throw;
             }
         }
-        
+
+        private void CreateDatabase()
+        {
+            try
+            {
+                var sql = $@"SELECT 1 FROM pg_database WHERE datname = '{_dbName}'";
+
+                using var connection = new NpgsqlConnection(_masterDbConnectionString);
+                connection.Open();
+                var dbExists = connection.QueryFirstOrDefault<int>(sql);
+
+                if (dbExists == 0)
+                {
+                    sql = $@"CREATE DATABASE ""{_dbName}""";
+                    connection.Execute(sql);
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         private void CreateEmployeeTable()
         {
             try
@@ -74,8 +107,8 @@ namespace Database.Unit.Test.DbContext
                             (
 	                            employee_id int PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
                                 employee_name varchar(50),
-	                            date_joined date NOT NULL,
-	                            created date NOT NULL
+	                            date_joined timestamp NOT NULL,
+	                            created timestamp NOT NULL
                             );";
 
                 using var connection = new NpgsqlConnection(_connectionString);

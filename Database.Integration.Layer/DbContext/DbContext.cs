@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace Database.Unit.Test.DbContext
+namespace Database.Integration.Layer.DbContext
 {
     public abstract class DbContext
     {        
