@@ -1,6 +1,6 @@
-using Database.Unit.Test.DbContext;
-using Database.Unit.Test.DbContext.Entities;
-using Database.Unit.Test.DbContext.Repositories;
+using Database.Integration.Layer.DbContext;
+using Database.Integration.Layer.DbContext.Entities;
+using Database.Integration.Layer.DbContext.Repositories;
 
 namespace Database.Unit.Test.Tests
 {
@@ -33,13 +33,8 @@ namespace Database.Unit.Test.Tests
             });
 
             Assert.True(employeeId > 0);
-        }
 
-        [Fact]
-        public void Get_EmployeeById_ReturnSingleEmployee()
-        {
-            var empRepo = new EmployeeRepository(_databaseContext.dbContext);
-            var employee = empRepo.GetById(1);
+            var employee = empRepo.GetById(employeeId);
 
             Assert.Equal("John", employee.EmployeeName);
         }
