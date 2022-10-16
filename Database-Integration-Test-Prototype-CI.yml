@@ -1,0 +1,34 @@
+jobs:
+- job: Job_1
+  displayName: Agent job 1
+  pool:
+    vmImage: windows-latest
+  steps:
+  - checkout: self
+  - task: PowerShell@2
+    displayName: Start Local SQL Instance
+    inputs:
+      targetType: inline
+      script: >
+        'sqllocaldb start mssqllocaldb'
+  - task: PowerShell@2
+    displayName: Start Local PostgreSQL Instance
+    inputs:
+      targetType: inline
+      script: >-
+        cd "C:\Program Files\PostgreSQL\14\bin"
+
+        .\pg_ctl.exe -D "C:\Program Files\PostgreSQL\14\data" start
+  - task: CmdLine@2
+    displayName: 'Create PostgreSql Test Database '
+    enabled: False
+    inputs:
+      script: >
+        "C:\Program Files\PostgreSQL\14\bin\psql" -c "CREATE DATABASE unit_test_db" "user=postgres dbname=postgres password=root"
+  - task: DotNetCoreCLI@2
+    displayName: dotnet test
+    inputs:
+      command: test
+      projects: '**/*[Tt]ests/*.csproj'
+      arguments: --configuration $(BuildConfiguration)
+...
